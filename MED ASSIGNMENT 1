@@ -1,0 +1,82 @@
+Task 1:
+import 'package:flutter/material.dart';
+void main() {
+  runApp(const MyApp());
+}
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Bidding App',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: const MaximumBid(),
+    );
+  }
+}
+class MaximumBid extends StatefulWidget {
+  const MaximumBid({super.key});
+  _MaximumBidState createState() => _MaximumBidState();
+}
+class _MaximumBidState extends State<MaximumBid> {
+  int bidAmount = 0;
+  void increaseBid() {
+    setState(() {
+      bidAmount += 50;
+    });
+  }
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Bidding Page'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              "Current Maximum Bid: \$$bidAmount",
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: increaseBid,
+              child: const Text("Increase Bid"),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+Task 2:
+void main() {
+  String name = "Ali";
+  int age = 20;
+  if (age < 18) {
+    print("Sorry $name, you are not eligible to register.");
+    return;
+  }
+  List<int> numbers = [12, 7, 25, 8, 3];
+  int sumEven = numbers.where((value) => value % 2 == 0).fold(0, (a, b) => a + b);
+  int sumOdd = numbers.where((value) => value % 2 != 0).fold(0, (a, b) => a + b);
+  int largest = numbers.reduce((a, b) => a > b ? a : b);
+  int smallest = numbers.reduce((a, b) => a < b ? a : b);
+  print("Name: $name");
+  print("Age: $age");
+  print("Numbers: $numbers");
+  print("Sum of Even Numbers: $sumEven");
+  print("Sum of Odd Numbers: $sumOdd");
+  print("Largest Number: $largest");
+  print("Smallest Number: $smallest");
+}
+Task 3:
+void main() {
+  int n = 5; 
+  for (int i = 1; i <= n; i++) {
+    String row = "";
+    for (int j = 1; j <= i; j++) {
+      row += "$j ";
+    }
+    print(row);
+  }
+}
