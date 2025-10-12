@@ -1,0 +1,88 @@
+import java.util.*;
+
+// -------------------------- INTERFACE --------------------------
+interface Reportable {
+    void report(); // abstraction through interface
+}
+
+// -------------------------- ABSTRACT CLASS --------------------------
+abstract class Person {
+    protected String name;
+    protected int age;
+    protected String address;
+
+    // Encapsulation: private fields + getter/setter
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public int getAge() { return age; }
+    public void setAge(int age) { this.age = age; }
+
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+
+    // Abstract method (Abstraction)
+    public abstract void displayDetails();
+}
+
+// -------------------------- INHERITANCE --------------------------
+class Criminal extends Person {
+    public Criminal(String name, int age, String address) {
+        this.name = name;
+        this.age = age;
+        this.address = address;
+    }
+
+    @Override
+    public void displayDetails() {
+        System.out.println("Name: " + name);
+        System.out.println("Age: " + age);
+        System.out.println("Address: " + address);
+    }
+}
+
+//………………………….FIR emplementation………………………..
+class FIR implements Reportable {
+    private String caseNumber;
+    private String description;
+    private String status;
+
+    public FIR(String caseNumber, String description) {
+        this.caseNumber = caseNumber;
+        this.description = description;
+        this.status = "Pending";
+    }
+
+    public String getCaseNumber() { return caseNumber; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
+    // Polymorphism: same report() method as CriminalStack but different output
+    @Override
+    public void report() {
+        System.out.println("Case Number: " + caseNumber);
+        System.out.println("Description: " + description);
+        System.out.println("Status: " + status);
+        System.out.println("------------------------");
+
+//……………………………………..Criminal record Implementation……………………
+
+public class Criminal {
+    int id;
+    String name;
+    String crime;
+    String date;
+    Criminal next; // for linked list (stack structure)
+
+    public Criminal(int id, String name, String crime, String date) {
+        this.id = id;
+        this.name = name;
+        this.crime = crime;
+        this.date = date;
+        this.next = null;
+    }
+
+    public void display() {
+        System.out.println("ID: " + id + " | Name: " + name + " | Crime: " + crime + " | Date: " + date);
+    }
+}
