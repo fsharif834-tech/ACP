@@ -1,0 +1,172 @@
+import java.util.*;
+interface Payable {
+    double calculateNetSalary();
+    void generatePayslip();
+}
+abstract class Employee implements Payable {
+    String empId;
+    String name;
+    double basicSalary;
+    Employee(String empId, String name, double basicSalary) {
+        this.empId = empId;
+        this.name = name;
+        this.basicSalary = basicSalary;
+    }
+    abstract double calculateTax();
+}
+class PermanentEmployee extends Employee {
+    double bonus;
+    PermanentEmployee(String empId, String name, double basicSalary, double bonus) {
+        super(empId, name, basicSalary);
+        this.bonus = bonus;
+    }
+    double calculateTax() {
+        return 0.10 * (basicSalary + bonus);
+    }
+    public double calculateNetSalary() {
+        return (basicSalary + bonus) - calculateTax();
+    }
+    public void generatePayslip() {
+        System.out.println("\n--- Permanent Employee Payslip ---");
+        System.out.println("ID           : " + empId);
+        System.out.println("Name         : " + name);
+        System.out.println("Basic Salary : " + basicSalary);
+        System.out.println("Bonus        : " + bonus);
+        System.out.println("Tax          : " + calculateTax());
+        System.out.println("Net Salary   : " + calculateNetSalary());
+    }
+}
+class ContractEmployee extends Employee {
+    int contractMonths;
+    ContractEmployee(String empId, String name, double basicSalary, int contractMonths) {
+        super(empId, name, basicSalary);
+        this.contractMonths = contractMonths;
+    }
+    double calculateTax() {
+        return 0.05 * basicSalary;
+    }
+    public double calculateNetSalary() {
+        return basicSalary - calculateTax();
+    }
+    public void generatePayslip() {
+        System.out.println("\n--- Contract Employee Payslip ---");
+        System.out.println("ID              : " + empId);
+        System.out.println("Name            : " + name);
+        System.out.println("Basic Salary    : " + basicSalary);
+        System.out.println("Contract Months : " + contractMonths);
+        System.out.println("Tax             : " + calculateTax());
+        System.out.println("Net Salary      : " + calculateNetSalary());
+    }
+}
+public class Main {
+    static ArrayList<Employee> employees = new ArrayList<>();
+    static Scanner sc = new Scanner(System.in);
+    public static void main(String[] args) {
+        int choice;
+        do {
+            System.out.println("\n===== Employee Payroll System =====");
+            System.out.println("1. Add Employee");
+            System.out.println("2. View All Employees");
+            System.out.println("3. Search Employee");
+            System.out.println("4. Highest Net Salary");
+            System.out.println("5. Average Salary");
+            System.out.println("6. Generate Payslip");
+            System.out.println("7. Exit");
+            System.out.print("Enter your choice: ");
+            choice = sc.nextInt();
+            sc.nextLine(); // clear input
+            switch (choice) {
+                case 1 -> addEmployee();
+                case 2 -> viewAll();
+                case 3 -> searchEmployee();
+                case 4 -> highestSalary();
+                case 5 -> averageSalary();
+                case 6 -> generatePayslip();
+                case 7 -> System.out.println("Thank you for using the system!");
+                default -> System.out.println("Invalid choice! Try again.");
+            }
+        } while (choice != 7);
+    }
+    static void addEmployee() {
+        System.out.print("Enter Type (Permanent / Contract): ");
+        String type = sc.nextLine();
+        System.out.print("Enter ID: ");
+        String id = sc.nextLine();
+        System.out.print("Enter Name: ");
+        String name = sc.nextLine();
+        System.out.print("Enter Basic Salary: ");
+        double salary = sc.nextDouble();
+        if (type.equalsIgnoreCase("Permanent")) {
+            System.out.print("Enter Bonus: ");
+            double bonus = sc.nextDouble();
+            employees.add(new PermanentEmployee(id, name, salary, bonus));
+        } else if (type.equalsIgnoreCase("Contract")) {
+            System.out.print("Enter Contract Duration (months): ");
+            int months = sc.nextInt();
+            employees.add(new ContractEmployee(id, name, salary, months));
+        } else {
+            System.out.println("Invalid type entered!");
+        }
+
+        System.out.println("Employee added successfully!");
+    }
+    static void viewAll() {
+        if (employees.isEmpty()) {
+            System.out.println("No employees to show!");
+            return;
+        }
+        System.out.printf("%-10s %-15s %-12s %-12s %-12s%n", "ID", "Name", "Type", "Tax", "Net Salary");
+        for (Employee e : employees) {
+            String type = (e instanceof PermanentEmployee) ? "Permanent" : "Contract";
+            System.out.printf("%-10s %-15s %-12s %-12.2f %-12.2f%n",
+                    e.empId, e.name, type, e.calculateTax(), e.calculateNetSalary());
+        }
+    }
+    static void searchEmployee() {
+        System.out.print("Enter Employee ID: ");
+        String id = sc.nextLine();
+        for (Employee e : employees) {
+            if (e.empId.equalsIgnoreCase(id)) {
+                e.generatePayslip();
+                return;
+            }
+        }
+        System.out.println("Employee not found!");
+    }
+    static void highestSalary() {
+        if (employees.isEmpty()) {
+            System.out.println("No employees available!");
+            return;
+        }
+        Employee top = employees.get(0);
+        for (Employee e : employees) {
+            if (e.calculateNetSalary() > top.calculateNetSalary()) {
+                top = e;
+            }
+        }
+        System.out.println("\nEmployee with Highest Net Salary:");
+        top.generatePayslip();
+    }
+    static void averageSalary() {
+        if (employees.isEmpty()) {
+            System.out.println("No employees available!");
+            return;
+        }
+        double total = 0;
+        for (Employee e : employees) {
+            total += e.calculateNetSalary();
+        }
+        System.out.printf("Average Net Salary: %.2f%n", total / employees.size());
+    }
+    static void generatePayslip() {
+        System.out.print("Enter Employee ID: ");
+        String id = sc.nextLine();
+        for (Employee e : employees) {
+            if (e.empId.equalsIgnoreCase(id)) {
+                e.generatePayslip();
+                return;
+            }
+        }
+        System.out.println("Employee not found!");
+    }
+}
