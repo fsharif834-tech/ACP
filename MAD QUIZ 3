@@ -1,0 +1,279 @@
+import 'package:flutter/material.dart';
+import 'dart:math';
+
+void main() {
+  runApp(const QuizApp());
+}
+
+class QuizApp extends StatelessWidget {
+  const QuizApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Quiz Flashcards',
+      theme: ThemeData(
+        primarySwatch: Colors.indigo,
+        useMaterial3: true,
+      ),
+      home: const FlashcardScreen(),
+    );
+  }
+}
+
+class Flashcard {
+  final String question;
+  final List<int> options;
+  final int correctAnswer;
+  bool learned;
+  int? selectedAnswer;
+
+  Flashcard({
+    required this.question,
+    required this.options,
+    required this.correctAnswer,
+    this.learned = false,
+    this.selectedAnswer,
+  });
+}
+
+class FlashcardScreen extends StatefulWidget {
+  const FlashcardScreen({super.key});
+
+  @override
+  State<FlashcardScreen> createState() => _FlashcardScreenState();
+}
+
+class _FlashcardScreenState extends State<FlashcardScreen> {
+  final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
+  final List<Flashcard> _flashcards = [];
+  int _learnedCount = 0;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFlashcards();
+  }
+
+  Future<void> _loadFlashcards() async {
+    setState(() => _isLoading = true);
+    await Future.delayed(const Duration(milliseconds: 400));
+    final random = Random();
+
+    // Clear existing list visually
+    final currentLength = _flashcards.length;
+    for (int i = currentLength - 1; i >= 0; i--) {
+      final removed = _flashcards.removeAt(i);
+      _listKey.currentState?.removeItem(
+        i,
+        (context, animation) => _buildCard(removed, i, animation),
+        duration: const Duration(milliseconds: 200),
+      );
+    }
+
+    setState(() {
+      _learnedCount = 0;
+    });
+
+    // Generate new multiple-choice questions
+    for (int i = 0; i < 10; i++) {
+      final a = random.nextInt(10) + 1;
+      final b = random.nextInt(10) + 1;
+      final answer = a + b;
+
+      final options = List<int>.generate(4, (_) => random.nextInt(20) + 1);
+      options[random.nextInt(4)] = answer; // ensure one correct option
+
+      final newCard = Flashcard(
+        question: 'Question ${i + 1}: What is $a + $b?',
+        options: options,
+        correctAnswer: answer,
+      );
+
+      _flashcards.insert(i, newCard);
+      await Future.delayed(const Duration(milliseconds: 80));
+      _listKey.currentState?.insertItem(i);
+    }
+
+    setState(() => _isLoading = false);
+  }
+
+  void _markAsLearned(int index) {
+    if (!_flashcards[index].learned) {
+      setState(() {
+        _flashcards[index].learned = true;
+        _learnedCount = _flashcards.where((f) => f.learned).length;
+      });
+    }
+  }
+
+  void _removeCard(int index) {
+    final removed = _flashcards.removeAt(index);
+    _listKey.currentState?.removeItem(
+      index,
+      (context, animation) => _buildCard(removed, index, animation),
+      duration: const Duration(milliseconds: 300),
+    );
+    setState(() {
+      _learnedCount = _flashcards.where((f) => f.learned).length;
+    });
+  }
+
+  void _addNewCard() {
+    final random = Random();
+    final a = random.nextInt(10) + 1;
+    final b = random.nextInt(10) + 1;
+    final answer = a + b;
+
+    final options = List<int>.generate(4, (_) => random.nextInt(20) + 1);
+    options[random.nextInt(4)] = answer;
+
+    final newCard = Flashcard(
+      question: 'New Question: What is $a + $b?',
+      options: options,
+      correctAnswer: answer,
+    );
+
+    _flashcards.insert(0, newCard);
+    _listKey.currentState?.insertItem(0, duration: const Duration(milliseconds: 400));
+  }
+
+  void _selectAnswer(int index, int selected) {
+    setState(() {
+      _flashcards[index].selectedAnswer = selected;
+      if (selected == _flashcards[index].correctAnswer) {
+        _markAsLearned(index);
+      }
+    });
+  }
+
+  Widget _buildOptionButton(Flashcard card, int optionValue, int index) {
+    final bool isSelected = card.selectedAnswer == optionValue;
+    final bool isCorrect = optionValue == card.correctAnswer;
+
+    Color? color;
+    if (isSelected) {
+      color = isCorrect ? Colors.green.shade100 : Colors.red.shade100;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color ?? Colors.white,
+          foregroundColor: Colors.black87,
+          side: BorderSide(
+            color: isCorrect && isSelected
+                ? Colors.green
+                : isSelected
+                    ? Colors.red
+                    : Colors.grey.shade300,
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+        ),
+        onPressed: card.selectedAnswer == null
+            ? () => _selectAnswer(index, optionValue)
+            : null,
+        child: Text(
+          optionValue.toString(),
+          style: const TextStyle(fontSize: 16),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCard(Flashcard card, int index, Animation<double> animation) {
+    return SizeTransition(
+      sizeFactor: animation,
+      child: Dismissible(
+        key: ValueKey(card.question),
+        direction: DismissDirection.endToStart,
+        background: Container(
+          color: Colors.green,
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: const Icon(Icons.check, color: Colors.white),
+        ),
+        onDismissed: (_) {
+          _markAsLearned(index);
+          _removeCard(index);
+        },
+        child: Card(
+          elevation: 3,
+          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: ExpansionTile(
+            title: Text(card.question),
+            subtitle: card.learned
+                ? const Text('✅ Learned', style: TextStyle(color: Colors.green))
+                : null,
+            children: card.options
+                .map((opt) => _buildOptionButton(card, opt, index))
+                .toList(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final progress =
+        _flashcards.isEmpty ? 0.0 : _learnedCount / _flashcards.length;
+
+    return Scaffold(
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _addNewCard,
+        icon: const Icon(Icons.add),
+        label: const Text("Add Question"),
+      ),
+      body: RefreshIndicator(
+        onRefresh: _loadFlashcards,
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              pinned: true,
+              expandedHeight: 140.0,
+              flexibleSpace: FlexibleSpaceBar(
+                titlePadding: const EdgeInsets.only(left: 16, bottom: 16),
+                title: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Progress: $_learnedCount of ${_flashcards.length} learned',
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 4),
+                    LinearProgressIndicator(
+                      value: progress,
+                      backgroundColor: Colors.white24,
+                      color: Colors.greenAccent,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: _isLoading
+                  ? const Padding(
+                      padding: EdgeInsets.all(24.0),
+                      child: Center(child: CircularProgressIndicator()),
+                    )
+                  : AnimatedList(
+                      key: _listKey,
+                      initialItemCount: _flashcards.length,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemBuilder: (context, index, animation) {
+                        return _buildCard(_flashcards[index], index, animation);
+                      },
+                    ),
+            ),
+            const SliverPadding(padding: EdgeInsets.only(bottom: 80)),
+          ],
+        ),
+      ),
+    );
+  }
+}
