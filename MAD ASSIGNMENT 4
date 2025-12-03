@@ -1,0 +1,22 @@
+import 'dart:io' show File; // Only used on Mobile
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/material.dart';
+import 'screens/home_screen.dart';
+
+void main() {
+  runApp(const SmartTrackerApp());
+}
+
+class SmartTrackerApp extends StatelessWidget {
+  const SmartTrackerApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Smart Tracker',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      debugShowCheckedModeBanner: false,
+      home: const HomeScreen(),
+    );
+  }
+}
