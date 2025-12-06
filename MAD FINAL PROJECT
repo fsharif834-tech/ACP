@@ -1,0 +1,391 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const HotelApp());
+}
+
+class HotelApp extends StatelessWidget {
+  const HotelApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: "Hotel Management",
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: const LoginPage(),
+    );
+  }
+}
+
+// Login Page
+class LoginPage extends StatelessWidget {
+  const LoginPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final userCtrl = TextEditingController();
+    final passCtrl = TextEditingController();
+
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            const Text("Hotel Manager Login",
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
+            TextField(controller: userCtrl, decoration: const InputDecoration(labelText: "Username")),
+            TextField(controller: passCtrl, decoration: const InputDecoration(labelText: "Password"), obscureText: true),
+            const SizedBox(height: 25),
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainDashboard()));
+                },
+                child: const Text("Login"))
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+// Dashboard
+class MainDashboard extends StatefulWidget {
+  const MainDashboard({super.key});
+
+  @override
+  State<MainDashboard> createState() => _MainDashboardState();
+}
+
+class _MainDashboardState extends State<MainDashboard> {
+  int index = 0;
+
+  final pages = [
+    const HomePage(),
+    const BookingPage(),
+    const RoomManagementPage(),
+    const AboutPage()
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: pages[index],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: index,
+        onTap: (v) => setState(() => index = v),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(icon: Icon(Icons.book_online), label: "Bookings"),
+          BottomNavigationBarItem(icon: Icon(Icons.meeting_room), label: "Rooms"),
+          BottomNavigationBarItem(icon: Icon(Icons.info), label: "About"),
+        ],
+      ),
+    );
+  }
+}
+
+// MockDB
+class MockDB {
+  static List<Map<String, dynamic>> rooms = [
+    {
+      "name": "Deluxe Room",
+      "price": 120,
+      "available": true,
+      "isAC": true,
+      "messSchedule": "Breakfast: 7-9 AM, Lunch: 12-2 PM, Dinner: 7-9 PM"
+    },
+    {
+      "name": "Suite Room",
+      "price": 250,
+      "available": false,
+      "isAC": true,
+      "messSchedule": "Breakfast: 8-10 AM, Lunch: 1-3 PM, Dinner: 8-10 PM"
+    },
+    {
+      "name": "Single Room",
+      "price": 80,
+      "available": true,
+      "isAC": false,
+      "messSchedule": "Breakfast: 7-9 AM, Lunch: 12-2 PM, Dinner: 7-9 PM"
+    },
+  ];
+
+  static List<Map<String, String>> bookings = [];
+}
+
+// Home Page
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Available Rooms")),
+      body: ListView.builder(
+          itemCount: MockDB.rooms.length,
+          itemBuilder: (context, i) {
+            final room = MockDB.rooms[i];
+            return Card(
+              margin: const EdgeInsets.all(12),
+              child: ListTile(
+                title: Text(room["name"]),
+                subtitle: Text("Price: \$${room["price"]} - ${room["isAC"] ? "AC" : "Non-AC"}"),
+                trailing: Icon(room["available"] ? Icons.check_circle : Icons.cancel,
+                    color: room["available"] ? Colors.green : Colors.red),
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => RoomDetailsPage(room: room)));
+                },
+              ),
+            );
+          }),
+    );
+  }
+}
+
+// Room Details
+class RoomDetailsPage extends StatelessWidget {
+  final Map<String, dynamic> room;
+  const RoomDetailsPage({super.key, required this.room});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(room["name"])),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(room["name"], style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 10),
+          Text("Price: \$${room["price"]}", style: const TextStyle(fontSize: 18)),
+          const SizedBox(height: 10),
+          Text(room["isAC"] ? "AC Room" : "Non-AC Room", style: const TextStyle(fontSize: 18)),
+          const SizedBox(height: 10),
+          Text("Mess Schedule:\n${room["messSchedule"]}", style: const TextStyle(fontSize: 16)),
+          const SizedBox(height: 10),
+          Text(room["available"] ? "Available" : "Not Available",
+              style: TextStyle(fontSize: 18, color: room["available"] ? Colors.green : Colors.red)),
+          const Spacer(),
+          ElevatedButton(
+            onPressed: room["available"]
+                ? () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => BookingFormPage(roomName: room["name"])));
+                  }
+                : null,
+            child: const Text("Book Now"),
+          )
+        ]),
+      ),
+    );
+  }
+}
+
+// Booking Page
+class BookingPage extends StatelessWidget {
+  const BookingPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Bookings")),
+      body: ListView.builder(
+          itemCount: MockDB.bookings.length,
+          itemBuilder: (context, i) {
+            final b = MockDB.bookings[i];
+            return Card(
+              margin: const EdgeInsets.all(12),
+              child: ListTile(
+                leading: const Icon(Icons.person),
+                title: Text(b["name"]!),
+                subtitle: Text("Room: ${b["room"]}\nDate: ${b["date"]}\nMess: ${b["mess"] ?? "N/A"}"),
+              ),
+            );
+          }),
+    );
+  }
+}
+
+// Booking Form
+class BookingFormPage extends StatefulWidget {
+  final String roomName;
+  const BookingFormPage({super.key, required this.roomName});
+
+  @override
+  State<BookingFormPage> createState() => _BookingFormPageState();
+}
+
+class _BookingFormPageState extends State<BookingFormPage> {
+  final nameCtrl = TextEditingController();
+  final dateCtrl = TextEditingController();
+
+  String breakfast = "7-9 AM";
+  String lunch = "12-2 PM";
+  String dinner = "7-9 PM";
+
+  final List<String> breakfastOptions = ["7-9 AM", "8-10 AM"];
+  final List<String> lunchOptions = ["12-2 PM", "1-3 PM"];
+  final List<String> dinnerOptions = ["7-9 PM", "8-10 PM"];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Book ${widget.roomName}")),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: ListView(
+          children: [
+            TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: "Name")),
+            TextField(controller: dateCtrl, decoration: const InputDecoration(labelText: "Date")),
+            const SizedBox(height: 10),
+            DropdownButton<String>(
+              value: breakfast,
+              isExpanded: true,
+              items: breakfastOptions.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+              onChanged: (v) => setState(() => breakfast = v!),
+            ),
+            DropdownButton<String>(
+              value: lunch,
+              isExpanded: true,
+              items: lunchOptions.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+              onChanged: (v) => setState(() => lunch = v!),
+            ),
+            DropdownButton<String>(
+              value: dinner,
+              isExpanded: true,
+              items: dinnerOptions.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+              onChanged: (v) => setState(() => dinner = v!),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                MockDB.bookings.add({
+                  "name": nameCtrl.text,
+                  "room": widget.roomName,
+                  "date": dateCtrl.text,
+                  "mess": "Breakfast: $breakfast, Lunch: $lunch, Dinner: $dinner"
+                });
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Booking Successful")));
+                Navigator.pop(context);
+              },
+              child: const Text("Submit"),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Room Management
+class RoomManagementPage extends StatefulWidget {
+  const RoomManagementPage({super.key});
+
+  @override
+  State<RoomManagementPage> createState() => _RoomManagementPageState();
+}
+
+class _RoomManagementPageState extends State<RoomManagementPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Room Management")),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => const AddRoomPage()))
+              .then((_) => setState(() {}));
+        },
+        child: const Icon(Icons.add),
+      ),
+      body: ListView.builder(
+        itemCount: MockDB.rooms.length,
+        itemBuilder: (context, i) {
+          final room = MockDB.rooms[i];
+          return Card(
+            margin: const EdgeInsets.all(10),
+            child: ListTile(
+              title: Text(room["name"]),
+              subtitle: Text("Price: \$${room["price"]} - ${room["isAC"] ? "AC" : "Non-AC"}"),
+              trailing: IconButton(
+                icon: const Icon(Icons.delete, color: Colors.red),
+                onPressed: () {
+                  setState(() => MockDB.rooms.removeAt(i));
+                },
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// Add Room
+class AddRoomPage extends StatefulWidget {
+  const AddRoomPage({super.key});
+
+  @override
+  State<AddRoomPage> createState() => _AddRoomPageState();
+}
+
+class _AddRoomPageState extends State<AddRoomPage> {
+  final nameCtrl = TextEditingController();
+  final priceCtrl = TextEditingController();
+  bool available = true;
+  bool isAC = true;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Add New Room")),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: ListView(
+          children: [
+            TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: "Room Name")),
+            TextField(controller: priceCtrl, decoration: const InputDecoration(labelText: "Price"), keyboardType: TextInputType.number),
+            SwitchListTile(title: const Text("Available"), value: available, onChanged: (v) => setState(() => available = v)),
+            SwitchListTile(title: const Text("AC Room"), value: isAC, onChanged: (v) => setState(() => isAC = v)),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                if (nameCtrl.text.isEmpty || priceCtrl.text.isEmpty) return;
+                MockDB.rooms.add({
+                  "name": nameCtrl.text,
+                  "price": int.tryParse(priceCtrl.text) ?? 0,
+                  "available": available,
+                  "isAC": isAC,
+                  "messSchedule": "Breakfast: 7-9 AM, Lunch: 12-2 PM, Dinner: 7-9 PM"
+                });
+                Navigator.pop(context);
+              },
+              child: const Text("Add Room"),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// About Page
+class AboutPage extends StatelessWidget {
+  const AboutPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("About")),
+      body: const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: Text(
+            "This Hotel Management App:\n- AC / Non-AC rooms\n- Mess schedule selection\n- Fully DartPad compatible",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 18),
+          ),
+        ),
+      ),
+    );
+  }
+}
